@@ -1,0 +1,5 @@
+/app/encrypto-server/node_modules
+/app/encrypto-ts/node_modules
+/fabric-samples
+/chaincode/asset-transfer-basic
+chaincode/encrypto-go/vendor

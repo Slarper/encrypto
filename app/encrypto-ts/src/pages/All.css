@@ -1,0 +1,14 @@
+.input-table {
+  width: 100%;
+  margin: 0 auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  min-width: 900px;
+}
+
+.result-block {
+    min-height: 500px;
+    min-width: 1000px;
+}
