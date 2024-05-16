@@ -1,6 +1,25 @@
 import * as paillierBigint from 'paillier-bigint'
 
-export function stringToBigInt(str: string) {
+interface PublicKey {
+    n: bigint
+    g: bigint
+}
+interface PrivateKey {
+    lambda: bigint
+    mu: bigint
+    publicKey: PublicKey
+
+}
+
+export function plainToPublicKey(publicKey: PublicKey): paillierBigint.PublicKey {
+    return new paillierBigint.PublicKey(publicKey.n, publicKey.g)
+}
+
+export function plainToPrivateKey(privateKey: PrivateKey): paillierBigint.PrivateKey {
+    return new paillierBigint.PrivateKey(privateKey.lambda, privateKey.mu, plainToPublicKey(privateKey.publicKey))
+}
+
+export function stringToBigInt(str: string):bigint {
     // Use TextEncoder to convert string to bytes
     let encoder = new TextEncoder();
     let bytes = encoder.encode(str);
@@ -14,7 +33,9 @@ export function stringToBigInt(str: string) {
     return result;
 }
 
-export function bigIntToString(bigInt:bigint) {
+// warning: not all bigints can convert into String!
+// plz use bigInt.toString (or json())to serialize bigint
+export function bigIntToString(bigInt:bigint): string {
     let bytes = [];
 
     // Convert BigInt to bytes
@@ -30,14 +51,14 @@ export function bigIntToString(bigInt:bigint) {
 
 
 
-export const json = (param: any): any => {
+export const json = (param: any): string => {
     return JSON.stringify(
       param,
       (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
     );
   };
 
-export const parse = (param: any): any => {
+export const parse = (param: string): any => {
     return JSON.parse(
         param,
         (key, value) => (typeof value === "string" && value.match(/^-?\d+$/g) ? BigInt(value) : value)

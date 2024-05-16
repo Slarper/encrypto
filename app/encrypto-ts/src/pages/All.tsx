@@ -17,6 +17,13 @@ function All() {
     const [args, setArgs] = useState('[]');
     const [invokeOrQuery, setInvokeOrQuery] = useState("0");
 
+
+    const [assetid, setAssetid] = useState('');
+    const [datatype, setDatatype] = useState('0');
+    const [data, setData] = useState('');
+
+    const [requestID, setRequestID] = useState('');
+
     const submmit = async () => {
         console.log('runCC init...')
         fetch('http://localhost:3001/api/call',
@@ -54,11 +61,9 @@ function All() {
 
     }
 
-    const [assetid, setAssetid] = useState('');
-    const [to_encrypt, setTo_encrypt] = useState('0');
-    const [data, setData] = useState('');
 
-    const putData= async () => {
+
+    const putData = async () => {
         console.log('runCC init...')
         fetch('http://localhost:3001/api/putData',
             {
@@ -82,9 +87,147 @@ function All() {
                     },
                     channelName: channelId,
                     chaincodeName: chaincodeId,
-                    id : assetid,
-                    datatype: to_encrypt,
+                    id: assetid,
+                    datatype: datatype,
                     data: data
+                })
+
+            }
+        )
+            .then(response => response.text())
+            .then(data => setResult(data))
+            .catch(error => console.error('Error:', error));
+
+    }
+
+    const getData = async () => {
+        console.log('runCC init...')
+        fetch('http://localhost:3001/api/getData',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    peer: {
+                        peerEndpoint: peerEndpoint,
+                        peerHostAlias: peerHostAlias,
+                        tlsCertPath: tlsCertPath,
+                    },
+                    identity: {
+                        mspId: mspId,
+                        certDirectoryPath: certDirectoryPath
+                    },
+                    signer: {
+                        keyDirectoryPath: keyDirectoryPath,
+
+                    },
+                    channelName: channelId,
+                    chaincodeName: chaincodeId,
+                    id: assetid,
+                })
+
+            }
+        )
+            .then(response => response.text())
+            .then(data => setResult(data))
+            .catch(error => console.error('Error:', error));
+
+    }
+    const requestData = async () => {
+        console.log('runCC init...')
+        fetch('http://localhost:3001/api/request',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    peer: {
+                        peerEndpoint: peerEndpoint,
+                        peerHostAlias: peerHostAlias,
+                        tlsCertPath: tlsCertPath,
+                    },
+                    identity: {
+                        mspId: mspId,
+                        certDirectoryPath: certDirectoryPath
+                    },
+                    signer: {
+                        keyDirectoryPath: keyDirectoryPath,
+
+                    },
+                    channelName: channelId,
+                    chaincodeName: chaincodeId,
+                    id: requestID,
+                    assetID: assetid
+                })
+
+            }
+        )
+            .then(response => response.text())
+            .then(data => setResult(data))
+            .catch(error => console.error('Error:', error));
+
+    }
+    const approval = async () => {
+        console.log('runCC init...')
+        fetch('http://localhost:3001/api/provideKey',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    peer: {
+                        peerEndpoint: peerEndpoint,
+                        peerHostAlias: peerHostAlias,
+                        tlsCertPath: tlsCertPath,
+                    },
+                    identity: {
+                        mspId: mspId,
+                        certDirectoryPath: certDirectoryPath
+                    },
+                    signer: {
+                        keyDirectoryPath: keyDirectoryPath,
+
+                    },
+                    channelName: channelId,
+                    chaincodeName: chaincodeId,
+                    id: requestID,
+                })
+
+            }
+        )
+            .then(response => response.text())
+            .then(data => setResult(data))
+            .catch(error => console.error('Error:', error));
+
+    }
+    const getEncrypted = async () => {
+        console.log('runCC init...')
+        fetch('http://localhost:3001/api/getEncryptedData',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    peer: {
+                        peerEndpoint: peerEndpoint,
+                        peerHostAlias: peerHostAlias,
+                        tlsCertPath: tlsCertPath,
+                    },
+                    identity: {
+                        mspId: mspId,
+                        certDirectoryPath: certDirectoryPath
+                    },
+                    signer: {
+                        keyDirectoryPath: keyDirectoryPath,
+
+                    },
+                    channelName: channelId,
+                    chaincodeName: chaincodeId,
+                    requestID: requestID,
                 })
 
             }
@@ -254,8 +397,8 @@ function All() {
                                 <label>To Encrypt</label>
                             </td>
                             <td>
-                                <input type="text" value={to_encrypt}
-                                    onChange={(e) => setTo_encrypt(e.target.value)}
+                                <input type="text" value={datatype}
+                                    onChange={(e) => setDatatype(e.target.value)}
                                 />
                             </td>
                         </tr>
@@ -272,6 +415,106 @@ function All() {
                     </td>
                 </tr>
             </table>
+            <table>
+                <tr>
+                    <td>
+                        <button
+                            onClick={getData}
+                        >GetData</button>
+                    </td>
+                    <td>
+                        <tr>
+                            <td>
+                                <label>Asset ID</label>
+                            </td>
+                            <td>
+                                <input type="text" value={assetid}
+                                    onChange={(e) => setAssetid(e.target.value)}
+                                />
+                            </td>
+
+                        </tr>
+                    </td>
+                </tr>
+            </table>
+
+            <table>
+                <tr>
+                    <td>
+                        <button
+                            onClick={requestData}
+                        >RequestData</button>
+                    </td>
+                    <td>
+                        <tr>
+                            <td>
+                                <label>Request ID</label>
+                            </td>
+                            <td>
+                                <input type="text" value={requestID}
+                                    onChange={(e) => setRequestID(e.target.value)}
+                                />
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>Asset ID</label>
+                            </td>
+                            <td>
+                                <input type="text" value={assetid}
+                                    onChange={(e) => setAssetid(e.target.value)}
+                                />
+                            </td>
+
+                        </tr>
+
+                    </td>
+                </tr>
+            </table>
+
+            <table>
+                <td>
+                    <button
+                        onClick={approval}
+                    >Approval</button>
+                </td>
+                <td>
+                    <tr>
+                        <td>
+                            <label>Request ID</label>
+                        </td>
+                        <td>
+                            <input type="text" value={requestID}
+                                onChange={(e) => setRequestID(e.target.value)}
+                            />
+                        </td>
+
+                    </tr>
+                </td>
+            </table>
+
+            <table>
+                <td>
+                    <button
+                        onClick={getEncrypted}
+                    >GetEncrypted</button>
+                </td>
+                <td>
+                    <tr>
+                        <td>
+                            <label>Request ID</label>
+                        </td>
+                        <td>
+                            <input type="text" value={requestID}
+                                onChange={(e) => setRequestID(e.target.value)}
+                            />
+                        </td>
+
+                    </tr>
+                </td>
+            </table>
+
             <textarea value={result}
                 onChange={(e) => setResult(e.target.value)}
             />
