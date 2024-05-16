@@ -237,6 +237,40 @@ function All() {
             .catch(error => console.error('Error:', error));
 
     }
+    const getRequest = async () => {
+        console.log('runCC init...')
+        fetch('http://localhost:3001/api/getRequest',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    peer: {
+                        peerEndpoint: peerEndpoint,
+                        peerHostAlias: peerHostAlias,
+                        tlsCertPath: tlsCertPath,
+                    },
+                    identity: {
+                        mspId: mspId,
+                        certDirectoryPath: certDirectoryPath
+                    },
+                    signer: {
+                        keyDirectoryPath: keyDirectoryPath,
+
+                    },
+                    channelName: channelId,
+                    chaincodeName: chaincodeId,
+                    rid: requestID,
+                })
+
+            }
+        )
+            .then(response => response.text())
+            .then(data => setResult(data))
+            .catch(error => console.error('Error:', error));
+
+    }
     return (
         <div>
             <h1>All Assets</h1>
@@ -499,6 +533,26 @@ function All() {
                     <button
                         onClick={getEncrypted}
                     >GetEncrypted</button>
+                </td>
+                <td>
+                    <tr>
+                        <td>
+                            <label>Request ID</label>
+                        </td>
+                        <td>
+                            <input type="text" value={requestID}
+                                onChange={(e) => setRequestID(e.target.value)}
+                            />
+                        </td>
+
+                    </tr>
+                </td>
+            </table>
+            <table>
+                <td>
+                    <button
+                        onClick={getRequest}
+                    >GetRequest</button>
                 </td>
                 <td>
                     <tr>

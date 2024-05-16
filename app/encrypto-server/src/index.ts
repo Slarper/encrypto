@@ -2,9 +2,10 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { runCC2, InvokeOrQuery, runCC3 } from './app3';
-import { bigIntToString, json, parse, plainToPrivateKey, plainToPublicKey, stringToBigInt } from './encryption'
+import { bigIntToString, json, parse, partitionDecrypt, partitionEncrypt, plainToPrivateKey, plainToPublicKey, stringToBigInt } from './encryption'
 import * as fs from 'fs';
 import * as paillierBigint from 'paillier-bigint'
+import { encryptcsv } from './csv';
 
 
 const app = express();
@@ -74,23 +75,30 @@ app.post('/api/putData', async (req, res) => {
 
         // need encryption
 
+        const csv = fs.readFileSync(data, 'utf8');
+
+
         const data2 = stringToBigInt(data);
 
-        const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(128)
+        const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(2048)
 
+        const encrypt = (entry:string) =>{
+            return json(publicKey.encrypt(stringToBigInt(entry)))
+        }
 
+        const csv_encrypted = encryptcsv(csv, encrypt);
 
-        const data3 = publicKey.encrypt(data2);
+        // const data3 = publicKey.encrypt(data2);
 
-        console.log('trying decryption:')
-        console.log(bigIntToString(privateKey.decrypt(data3)))
+        // console.log('trying decryption:')
+        // console.log(bigIntToString(privateKey.decrypt(data3)))
 
-        const data4 = json(data3);
+        // const data4 = json(data3);
 
         await runCC3(peer, identity, signer,
             channelName, chaincodeName,
             async (c) => {
-                return c.submitTransaction('PutData', id, datatype, data4);
+                return c.submitTransaction('PutData', id, datatype, csv_encrypted);
             }
         );
         res.send('Success!');
@@ -165,7 +173,7 @@ app.post('/api/request', async (req, res) => {
     const id = req.body.id;
     const assetID = req.body.assetID;
 
-    const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(3072)
+    const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(2048)
 
     const publicKeyString = json(publicKey);
 
@@ -236,30 +244,38 @@ app.post('/api/provideKey', async (req, res) => {
         const publicKey_plain = parse(publicKey) as {n:bigint, g:bigint, n2:bigint, lambda:bigint, publicKey:bigint[]}
 
         const publicKey2 = plainToPublicKey(publicKey_plain);
-        console.log('publick key of p2 = ')
-        console.log(publicKey2)
+        // console.log('publick key of p2 = ')
+        // console.log(publicKey2)
 
         const assetID = request2.assetID;
 
         const key =fs.readFileSync(`./storage/data/${assetID}/privateKey.json`, 'utf8');
 
-        const key2 = stringToBigInt(key);
+        // const key2 = stringToBigInt(key);
 
-        console.log(key2)
+        // console.log(key2)
 
         console.log('is it work?')
-        const key3 = publicKey2.encrypt(key2);
+        // const key3 = publicKey2.encrypt(key2);
 
-        const key4 = json(key3);
+        // const key4 = json(key3);
 
+        const encrypt = (entry:string) =>{
+            return json(publicKey2.encrypt(stringToBigInt(entry)))
+        }
+        const key_partition_encrypted = partitionEncrypt(key, 100,encrypt)
+
+        const key_json = json(key_partition_encrypted)
+
+        console.log(key_json)
 
         const resultJson = await runCC3(peer, identity, signer,
             channelName, chaincodeName,
             async (c) => {
-                return c.submitTransaction('ProvideKey',id, key4);
+                return c.submitTransaction('ProvideKey',id, key_json);
             }
         );
-        res.send(resultJson);
+        res.send('done');
     }
 
     catch (error) {
@@ -310,19 +326,28 @@ app.post('/api/getEncryptedData', async (req, res) => {
         
         const privateKay_plain = parse(privateKey) 
         const privateKey2 = plainToPrivateKey(privateKay_plain);
-        console.log('privatekey of p2 = ')
-        console.log(privateKey2)
+
         const key1 = parse(key);
+
         console.log(typeof key1)
 
-        console.log(key1)
-        const key3 = privateKey2.decrypt(key1);
+        // const key3 = privateKey2.decrypt(key1);
 
-        console.log(key3)
+        // console.log(key3)
 
-        const key4 = bigIntToString(key3);
-        console.log(key4)
-        const key5 = plainToPrivateKey(parse(key4))
+
+
+        // const key4 = bigIntToString(key3);
+        // console.log(key4)
+
+        const decrypt2 = (entry:string) => {
+            return bigIntToString(privateKey2.decrypt(parse(entry)))
+        }
+        // const key5 = plainToPrivateKey(parse(key4))
+
+        const key5 = plainToPrivateKey(parse(
+            partitionDecrypt(key1,decrypt2)
+        ))
 
 
 
@@ -337,13 +362,47 @@ app.post('/api/getEncryptedData', async (req, res) => {
         const result = JSON.parse(resultJson);
         const data = result.value;
 
-        const data2 = parse(data);
+        const decrypt = (entry:string) => {
+            return bigIntToString(key5.decrypt(parse(entry)))
+        }
 
-        const data3 = key5.decrypt(data2);
+        const csv_decrypted = encryptcsv(data, decrypt);
 
-        const data4 = bigIntToString(data3);
+        // const data2 = parse(data);
 
-        res.send(data4);
+        // const data3 = key5.decrypt(data2);
+
+        // const data4 = bigIntToString(data3);
+
+        res.send(csv_decrypted);
+    }
+
+    catch (error) {
+        console.error('Error:', error);
+        res.send(error);
+    }
+
+
+});
+
+app.post('/api/getRequest', async (req, res) => {
+    const peer = req.body.peer;
+    const identity = req.body.identity;
+    const signer = req.body.signer;
+    const channelName = req.body.channelName;
+    const chaincodeName = req.body.chaincodeName;
+
+    const rid = req.body.rid;
+
+    try {
+        const resultJson = await runCC3(peer, identity, signer,
+            channelName, chaincodeName,
+            async (c) => {
+                return c.evaluateTransaction('GetRequest', rid);
+            }
+        );
+        res.send(resultJson);
+        
     }
 
     catch (error) {
@@ -355,7 +414,6 @@ app.post('/api/getEncryptedData', async (req, res) => {
 });
 
 
-
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
@@ -364,3 +422,4 @@ app.get('/test', ()=>{
     console.log(json(19999999999999999999999999999999999999999999999999999999999999999999n))
 })
 
+// console.log(encryptcsv('a,b,c\n1,2,3\n4,5,6\n7,8,9\n', (entry: string) => entry + 'x'))

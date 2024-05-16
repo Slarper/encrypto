@@ -11,6 +11,26 @@ interface PrivateKey {
 
 }
 
+export function partitionEncrypt(data: string, chunk_size:number,  encrypt: (entry: string) => string): string[] {
+    let partitions = []
+    console.log('')
+    const chunk_num = Math.ceil(data.length / chunk_size)
+    for (let i = 0; i < data.length; i += chunk_size) {
+        partitions.push(encrypt(data.slice(i, i + chunk_size)))
+
+        process.stdout.write(`\r${i}/${chunk_num}`);
+    }
+    return partitions
+}
+
+export function partitionDecrypt(data: string[],  decrypt: (entry: string) => string): string {
+    let decrypted = ""
+    for (let i = 0; i < data.length; i++) {
+        decrypted += decrypt(data[i])
+    }
+    return decrypted
+}
+
 export function plainToPublicKey(publicKey: PublicKey): paillierBigint.PublicKey {
     return new paillierBigint.PublicKey(publicKey.n, publicKey.g)
 }
