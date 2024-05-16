@@ -3,3 +3,5 @@
 /fabric-samples
 /chaincode/asset-transfer-basic
 chaincode/encrypto-go/vendor
+/app/encrypto-server/storage
+/app/encrypto-server/csv

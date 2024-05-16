@@ -61,21 +61,23 @@ app.post('/api/putData', async (req, res) => {
         const datatype = req.body.datatype;
         const data = req.body.data;
 
+
+
+        // need encryption
+
+        const csv = fs.readFileSync(data, 'utf8');
+
         if (datatype === '0' || datatype === 0) {
 
             await runCC3(peer, identity, signer,
                 channelName, chaincodeName,
                 async (c) => {
-                    return c.submitTransaction('PutData', id, datatype, data);
+                    return c.submitTransaction('PutData', id, datatype, csv);
                 }
             );
             res.send('Success!');
             return;
         }
-
-        // need encryption
-
-        const csv = fs.readFileSync(data, 'utf8');
 
 
         const data2 = stringToBigInt(data);

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import './All.css'
+import Papa from 'papaparse';
+import CsvToHtmlTable from "../components/csvToHtmlTable";
 
 function All() {
     const [mspId, setMspId] = useState('Org1MSP');
@@ -23,6 +25,8 @@ function All() {
     const [data, setData] = useState('');
 
     const [requestID, setRequestID] = useState('');
+
+    const [csvdata, setCsvData] = useState('');
 
     const submmit = async () => {
         console.log('runCC init...')
@@ -130,7 +134,13 @@ function All() {
             }
         )
             .then(response => response.text())
-            .then(data => setResult(data))
+            .then(data => {setResult(data)
+
+                const data2 = JSON.parse(data)
+                const csv = data2.value
+
+                setCsvData(csv)
+            })
             .catch(error => console.error('Error:', error));
 
     }
@@ -233,7 +243,13 @@ function All() {
             }
         )
             .then(response => response.text())
-            .then(data => setResult(data))
+            .then(data => {setResult(data)
+
+                const csv = data
+
+                setCsvData(csv)
+            
+            })
             .catch(error => console.error('Error:', error));
 
     }
@@ -358,6 +374,10 @@ function All() {
                 </tr>
 
             </table>
+            <textarea value={result}
+                onChange={(e) => setResult(e.target.value)}
+            />
+
             <table>
                 <tr>
                     <td>
@@ -568,10 +588,13 @@ function All() {
                     </tr>
                 </td>
             </table>
-
-            <textarea value={result}
-                onChange={(e) => setResult(e.target.value)}
+            <CsvToHtmlTable
+                data={csvdata}
+                csvDelimiter=","
+                tableClassName="table table-striped table-hover"
             />
+
+
         </div>
     )
 }
