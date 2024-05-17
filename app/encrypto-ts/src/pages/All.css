@@ -12,3 +12,19 @@
     min-height: 500px;
     min-width: 1000px;
 }
+
+
+.table {
+  border-collapse:collapse;
+  border:1px solid #FF0000;
+}
+
+.table td{
+  border:1px solid #FF0000;
+  text-align: center;
+  padding:10px
+}
+
+.table th {
+  padding:10px
+}

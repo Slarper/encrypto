@@ -63,7 +63,7 @@ const CsvToHtmlTable: FC<CsvToHtmlTableProps> = ({
                       className={tableColumnClassName}
                       key={colKey(column, colIdx, rowIdx)}
                     >
-                      {typeof renderCell === "function" ? renderCell(column, colIdx, rowIdx) : column}
+                      {typeof renderCell === "function" ? renderCell(column, colIdx, rowIdx) : shorten(column,40)}
                     </td>
                   ))
                 }
@@ -82,5 +82,13 @@ const CsvToHtmlTable: FC<CsvToHtmlTableProps> = ({
     </table>
   );
 };
+
+function shorten(str: string, maxLength: number) {
+  if (str.length > maxLength) {
+    return str.substring(0, maxLength) + '...';
+  }
+  return str;
+}
+
 
 export default CsvToHtmlTable;

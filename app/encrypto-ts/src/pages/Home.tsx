@@ -9,9 +9,9 @@ function Home() {
     };
   return (
     <div className="App">
-      <h1>Home</h1>
-      <button onClick={goToAnotherPage}>Welcome!</button>
-      <button onClick={()=>navigate('/all')}>All!</button>
+      <h1>欢迎使用电力数据加密原型系统</h1>
+      {/* <button onClick={goToAnotherPage}>Welcome!</button> */}
+      <button onClick={()=>navigate('/all')}>点此进入</button>
     </div>
   );
 }

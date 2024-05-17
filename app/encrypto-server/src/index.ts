@@ -82,7 +82,7 @@ app.post('/api/putData', async (req, res) => {
 
         const data2 = stringToBigInt(data);
 
-        const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(2048)
+        const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(1024)
 
         const encrypt = (entry:string) =>{
             return json(publicKey.encrypt(stringToBigInt(entry)))
@@ -175,7 +175,7 @@ app.post('/api/request', async (req, res) => {
     const id = req.body.id;
     const assetID = req.body.assetID;
 
-    const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(2048)
+    const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(1024)
 
     const publicKeyString = json(publicKey);
 
@@ -246,21 +246,13 @@ app.post('/api/provideKey', async (req, res) => {
         const publicKey_plain = parse(publicKey) as {n:bigint, g:bigint, n2:bigint, lambda:bigint, publicKey:bigint[]}
 
         const publicKey2 = plainToPublicKey(publicKey_plain);
-        // console.log('publick key of p2 = ')
-        // console.log(publicKey2)
 
         const assetID = request2.assetID;
 
         const key =fs.readFileSync(`./storage/data/${assetID}/privateKey.json`, 'utf8');
 
-        // const key2 = stringToBigInt(key);
-
-        // console.log(key2)
 
         console.log('is it work?')
-        // const key3 = publicKey2.encrypt(key2);
-
-        // const key4 = json(key3);
 
         const encrypt = (entry:string) =>{
             return json(publicKey2.encrypt(stringToBigInt(entry)))
@@ -269,7 +261,8 @@ app.post('/api/provideKey', async (req, res) => {
 
         const key_json = json(key_partition_encrypted)
 
-        console.log(key_json)
+        // compare with getEncryptedData
+        // console.log(key_json)
 
         const resultJson = await runCC3(peer, identity, signer,
             channelName, chaincodeName,
@@ -333,14 +326,6 @@ app.post('/api/getEncryptedData', async (req, res) => {
 
         console.log(typeof key1)
 
-        // const key3 = privateKey2.decrypt(key1);
-
-        // console.log(key3)
-
-
-
-        // const key4 = bigIntToString(key3);
-        // console.log(key4)
 
         const decrypt2 = (entry:string) => {
             return bigIntToString(privateKey2.decrypt(parse(entry)))

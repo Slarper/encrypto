@@ -1,4 +1,5 @@
 import * as paillierBigint from 'paillier-bigint'
+import { performance } from 'perf_hooks';
 
 interface PublicKey {
     n: bigint
@@ -11,23 +12,45 @@ interface PrivateKey {
 
 }
 
-export function partitionEncrypt(data: string, chunk_size:number,  encrypt: (entry: string) => string): string[] {
+export function partitionEncrypt(data: string, chunk_size: number, encrypt: (entry: string) => string): string[] {
+    let startTime = performance.now();
+
+
     let partitions = []
     console.log('')
     const chunk_num = Math.ceil(data.length / chunk_size)
     for (let i = 0; i < data.length; i += chunk_size) {
         partitions.push(encrypt(data.slice(i, i + chunk_size)))
 
-        process.stdout.write(`\r${i}/${chunk_num}`);
+        process.stdout.write(`\r${i}/${data.length}`);
     }
+
+    let endTime = performance.now();
+
+    // Calculate the elapsed time
+    let timeElapsed = endTime - startTime;
+
+    console.log(`The function partitionEncrypt took ${timeElapsed} milliseconds to execute., for ${chunk_num} entries`);
     return partitions
 }
 
-export function partitionDecrypt(data: string[],  decrypt: (entry: string) => string): string {
+export function partitionDecrypt(data: string[], decrypt: (entry: string) => string): string {
+    let startTime = performance.now();
+
+
     let decrypted = ""
     for (let i = 0; i < data.length; i++) {
         decrypted += decrypt(data[i])
     }
+
+    let endTime = performance.now();
+
+    // Calculate the elapsed time
+    let timeElapsed = endTime - startTime;
+
+    console.log(`The function partitionDecrypt took ${timeElapsed} milliseconds to execute., for ${data.length} entries`);
+
+
     return decrypted
 }
 
@@ -39,23 +62,23 @@ export function plainToPrivateKey(privateKey: PrivateKey): paillierBigint.Privat
     return new paillierBigint.PrivateKey(privateKey.lambda, privateKey.mu, plainToPublicKey(privateKey.publicKey))
 }
 
-export function stringToBigInt(str: string):bigint {
+export function stringToBigInt(str: string): bigint {
     // Use TextEncoder to convert string to bytes
     let encoder = new TextEncoder();
     let bytes = encoder.encode(str);
-    
+
     // Combine bytes into a BigInt
     let result = BigInt(0);
     for (let i = 0; i < bytes.length; i++) {
         result = (result << BigInt(8)) + BigInt(bytes[i]);
     }
-    
+
     return result;
 }
 
 // warning: not all bigints can convert into String!
 // plz use bigInt.toString (or json())to serialize bigint
-export function bigIntToString(bigInt:bigint): string {
+export function bigIntToString(bigInt: bigint): string {
     let bytes = [];
 
     // Convert BigInt to bytes
@@ -73,10 +96,10 @@ export function bigIntToString(bigInt:bigint): string {
 
 export const json = (param: any): string => {
     return JSON.stringify(
-      param,
-      (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
+        param,
+        (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
     );
-  };
+};
 
 export const parse = (param: string): any => {
     return JSON.parse(
@@ -85,32 +108,32 @@ export const parse = (param: string): any => {
     )
 }
 
-async function paillierTest () {
+async function paillierTest() {
     // (asynchronous) creation of a random private, public key pair for the Paillier cryptosystem
     const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(3072)
-    
+
     const publicKey_str = json(publicKey)
     console.log(publicKey)
     console.log(parse(publicKey_str))
     // Optionally, you can create your public/private keys from known parameters
     // const publicKey = new paillierBigint.PublicKey(n, g)
     // const privateKey = new paillierBigint.PrivateKey(lambda, mu, publicKey)
-  
+
     const m1 = 12345678901234567890n
     const m2 = 5n
-  
+
     // encryption/decryption
     const c1 = publicKey.encrypt(m1)
     console.log(privateKey.decrypt(c1)) // 12345678901234567890n
-  
+
     // homomorphic addition of two ciphertexts (encrypted numbers)
     const c2 = publicKey.encrypt(m2)
     const encryptedSum = publicKey.addition(c1, c2)
     console.log(privateKey.decrypt(encryptedSum)) // m1 + m2 = 12345678901234567895n
-  
+
     // multiplication by k
     const k = 10n
     const encryptedMul = publicKey.multiply(c1, k)
     console.log(privateKey.decrypt(encryptedMul)) // k · m1 = 123456789012345678900n
-  }
+}
 //   paillierTest()

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import './All.css'
-import Papa from 'papaparse';
 import CsvToHtmlTable from "../components/csvToHtmlTable";
 
 function All() {
@@ -138,7 +137,7 @@ function All() {
 
                 const data2 = JSON.parse(data)
                 const csv = data2.value
-
+                
                 setCsvData(csv)
             })
             .catch(error => console.error('Error:', error));
@@ -289,7 +288,7 @@ function All() {
     }
     return (
         <div>
-            <h1>All Assets</h1>
+            <h1>欢迎使用电力数据加密原型系统</h1>
             <table>
                 <tr>
                     <td>
