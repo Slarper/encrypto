@@ -70,6 +70,7 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
   if err != nil {
     return err
   }
+  
 
   return ctx.GetStub().PutState(id, assetJSON)
 }
